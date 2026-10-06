@@ -1,0 +1,10 @@
+{
+  "name": "LYRA - Android Personal AI Voice & Action Assistant",
+  "description": "Next-generation Android personal voice and text AI assistant with real phone control, fantasy fairy animated avatar, proactive briefing, multi-AI reasoning, and productivity suite.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
