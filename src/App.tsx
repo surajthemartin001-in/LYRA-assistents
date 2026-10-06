@@ -578,14 +578,34 @@ export default function App() {
       setLatestAssistantText(reply);
       if (settings.autoTts) playSpeech(reply);
     } catch (err: any) {
-      const errMsg: Message = {
-        id: `a-err-${Date.now()}`,
+      // Graceful Static Host / Offline Fallback (e.g. GitHub Pages static deployment)
+      let fallbackReply = `नमस्ते! मैं Lyra हूँ. मैंने आपका संदेश नोट कर लिया है: "${userText}".`;
+      let fallbackAction: any = undefined;
+
+      const lower = userText.toLowerCase();
+      if (lower.includes('search') || lower.includes('खोजो') || lower.includes('google') || lower.includes('weather') || lower.includes('news')) {
+        fallbackReply = `Google पर "${userText}" की ताज़ा जानकारी खोजने के लिए तैयार हूँ.`;
+        fallbackAction = PhoneControlService.launchBrowser(userText);
+      } else if (lower.includes('map') || lower.includes('navigate') || lower.includes('रास्ता')) {
+        fallbackReply = `Google Maps नेविगेशन खोला जा रहा है.`;
+        fallbackAction = PhoneControlService.openMapsNavigation(userText);
+      } else if (lower.includes('help') || lower.includes('मदद') || lower.includes('who are you') || lower.includes('कौन हो')) {
+        fallbackReply = `मैं Lyra हूँ, आपकी पर्सनल AI असिस्टेंट! मैं आपके अलार्म, टाइमर, कॉल्स, मैसेज, कैलेंडर, टास्क और गूगल सर्च सब कुछ सीधे आपके फ़ोन पर संभाल सकती हूँ.`;
+      } else {
+        fallbackReply = `नमस्ते! आपका अनुरोध प्राप्त हुआ. अगर आप इंटरनेट सर्च या फ़ोन ऐक्शन चाहते हैं तो मुझे बताएँ. (Lyra Offline Engine Active)`;
+      }
+
+      const fallbackMsg: Message = {
+        id: `a-${Date.now()}`,
         role: 'assistant',
-        text: `I couldn't complete that because of a connection error: ${err?.message || 'Server error'}. Please check internet connection or model settings.`,
+        text: fallbackReply,
         timestamp: Date.now(),
+        toolAction: fallbackAction,
       };
-      setMessages((prev) => [...prev, errMsg]);
-      setLatestAssistantText(errMsg.text);
+
+      setMessages((prev) => [...prev, fallbackMsg]);
+      setLatestAssistantText(fallbackReply);
+      if (settings.autoTts) playSpeech(fallbackReply);
     } finally {
       setIsThinking(false);
       if (!isSpeaking) setAvatarState('idle');
